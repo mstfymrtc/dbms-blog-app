@@ -1,7 +1,26 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import { APP_URL } from "../../config/constants";
+import axios from "axios";
+var Cookies = require("js-cookie");
 
 export default class PostCard extends Component {
+  handleDelete = () => {
+    let answer = window.confirm("Are you sure want to delete this post?");
+    if (answer) {
+      //some code
+      // deletePostById
+      const { postId } = this.props;
+
+      axios
+        .get(`${APP_URL}/posts/deletePostById/${postId}`)
+        .then(res => {
+          alert("Post deleted successfully");
+          window.location.reload();
+        })
+        .catch(err => console.log(err));
+    }
+  };
   render() {
     const {
       postId,
@@ -10,7 +29,8 @@ export default class PostCard extends Component {
       publishDate,
       postImageUrl,
       authorName,
-      authorAvatarUrl
+      authorAvatarUrl,
+      authorId
     } = this.props;
 
     return (
@@ -22,7 +42,14 @@ export default class PostCard extends Component {
           <h2 className="card-title">
             <Link to={`/post/${postId}`}>{title}</Link>
           </h2>
-          <h4 className="card-text">
+          <h4
+            style={{
+              wordWrap: "break-word",
+              minHeight: "15vh",
+              maxHeight: "40vh"
+            }}
+            className="card-text"
+          >
             {content ? content.slice(0, 129) : ""}...
           </h4>
           <div className="metafooter">
@@ -45,21 +72,16 @@ export default class PostCard extends Component {
                   {publishDate ? publishDate.slice(0, 10) : ""}
                 </span>
               </span>
-              <span className="post-read-more">
-                <a href="post.html" title="Read Story">
-                  <svg
-                    className="svgIcon-use"
-                    width="25"
-                    height="25"
-                    viewBox="0 0 25 25"
-                  >
-                    <path
-                      d="M19 6c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v14.66h.012c.01.103.045.204.12.285a.5.5 0 0 0 .706.03L12.5 16.85l5.662 4.126a.508.508 0 0 0 .708-.03.5.5 0 0 0 .118-.285H19V6zm-6.838 9.97L7 19.636V6c0-.55.45-1 1-1h9c.55 0 1 .45 1 1v13.637l-5.162-3.668a.49.49 0 0 0-.676 0z"
-                      fillRule="evenodd"
+              {Cookies.get("currentlyLoggedInUserId") === authorId ? (
+                <span className="post-read-more">
+                  <a onClick={() => this.handleDelete()} title="Read Story">
+                    <i
+                      style={{ cursor: "pointer" }}
+                      class="fas fa-trash fa-2x"
                     />
-                  </svg>
-                </a>
-              </span>
+                  </a>
+                </span>
+              ) : null}
             </div>
           </div>
         </div>

@@ -1,7 +1,31 @@
 import React, { Component } from "react";
 import { PostCard } from "../components/PostCard";
+import axios from "axios";
+import { APP_URL } from "../config/constants";
+
 export default class Author extends Component {
+  state = {
+    user: {},
+    posts: []
+  };
+  componentDidMount() {
+    const { userId } = this.props.match.params;
+    axios
+      .get(`${APP_URL}/posts/getPostsByUserId/${userId}`)
+      .then(res => this.setState({ posts: res.data }))
+      .catch(err => console.log(err));
+
+    axios
+      .get(`${APP_URL}/users/getUserById/${userId}`)
+      .then(res => this.setState({ user: res.data[0] }))
+      .catch(err => console.log(err));
+  }
   render() {
+    const { userId } = this.props.match.params;
+
+    console.log(this.state.posts, this.state.user);
+    const { avatarurl, fullname } = this.state.user;
+    const { posts } = this.state;
     return (
       <div>
         <div className="container">
@@ -11,7 +35,7 @@ export default class Author extends Component {
               <div className="mainheading">
                 <div className="row post-top-meta authorpage">
                   <div className="col-md-10 col-xs-12">
-                    <h1>Mustafa Yumurtacı</h1>
+                    <h1>{fullname}</h1>
                     <span className="author-description">
                       Founder of
                       <a target="_blank" href="https://www.wowthemes.net">
@@ -24,11 +48,7 @@ export default class Author extends Component {
                     </span>
                   </div>
                   <div className="col-md-2 col-xs-12">
-                    <img
-                      className="author-thumb"
-                      src="https://www.gravatar.com/avatar/e56154546cf4be74e393c62d1ae9f9d4?s=250&amp;d=mm&amp;r=x"
-                      alt="Sal"
-                    />
+                    <img className="author-thumb" src={avatarurl} alt="Sal" />
                   </div>
                 </div>
               </div>
@@ -40,9 +60,21 @@ export default class Author extends Component {
           <div className="container">
             <div className="listrecent listrelated">
               <div className="authorpostbox">
-                <PostCard />
-                <br />
-                <PostCard />
+                {posts.map(item => (
+                  <div key={item.postid}>
+                    <PostCard
+                      postId={item.postid}
+                      title={item.title}
+                      content={item.content}
+                      publishDate={item.publishdate}
+                      postImageUrl={item.imageurl}
+                      authorName={fullname}
+                      authorAvatarUrl={avatarurl}
+                      authorId={userId}
+                    />
+                    <br />
+                  </div>
+                ))}{" "}
               </div>
             </div>
           </div>

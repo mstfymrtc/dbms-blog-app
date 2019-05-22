@@ -1,17 +1,39 @@
 import React, { Component } from "react";
 import { PostCard } from "../components/PostCard";
 import axios from "axios";
+import { APP_URL } from "../config/constants";
+
 export default class Home extends Component {
   state = {
-    posts: []
+    posts: [],
+    categories: [],
+    fetching: true,
+    filteredPosts: []
   };
   componentDidMount() {
     axios
-      .get("http://localhost:3000/posts/getAllPosts")
-      .then(res => this.setState({ posts: res.data }));
+      .get(`${APP_URL}/posts/getAllPosts`)
+      .then(res => this.setState({ posts: res.data, filteredPosts: res.data }));
+    axios
+      .get(`${APP_URL}/categories/getAllCategories`)
+      .then(res => this.setState({ categories: res.data, fetching: false }));
   }
+  filterPostByCategory = categoryId => {
+    const { categories, posts } = this.state;
+    let postsClone = posts;
+    let filteredPosts = postsClone.filter(
+      item => item.categoryid === categoryId
+    );
+    this.setState({ filteredPosts });
+  };
   render() {
-    const { posts } = this.state;
+    console.log(this.state.posts);
+    const { filteredPosts, categories, fetching, posts } = this.state;
+    // console.log(posts);
+
+    if (fetching) {
+      return <p>Loading...</p>;
+    }
     return (
       <div className="container">
         <div className="mainheading">
@@ -22,22 +44,18 @@ export default class Home extends Component {
           </div>
           <div className="after-post-tags">
             <ul className="tags">
-              <li>
-                <a href="#">All Posts</a>
+              <li style={{ cursor: "pointer" }}>
+                <a onClick={() => this.setState({ filteredPosts: posts })}>
+                  All
+                </a>
               </li>
-
-              <li>
-                <a href="#">Design</a>
-              </li>
-              <li>
-                <a href="#">Growth Mindset</a>
-              </li>
-              <li>
-                <a href="#">Productivity</a>
-              </li>
-              <li>
-                <a href="#">Personal Growth</a>
-              </li>
+              {categories.map(item => (
+                <li style={{ cursor: "pointer" }} key={item.categoryid}>
+                  <a onClick={() => this.filterPostByCategory(item.categoryid)}>
+                    {item.name}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -48,7 +66,7 @@ export default class Home extends Component {
             </h2>
           </div>
           <div className="card-columns listrecent">
-            {posts.map(item => (
+            {filteredPosts.map(item => (
               <PostCard
                 key={item.postid}
                 postId={item.postid}
@@ -58,6 +76,7 @@ export default class Home extends Component {
                 postImageUrl={item.imageurl}
                 authorName={item.fullname}
                 authorAvatarUrl={item.avatarurl}
+                authorId={item.userid}
               />
             ))}
           </div>

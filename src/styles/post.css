@@ -1,0 +1,6 @@
+.heart-icon {
+  color: "black" !important;
+}
+.heart-icon:hover {
+  color: "red" !important;
+}

@@ -1,6 +1,15 @@
 import React, { Component } from "react";
+var Cookies = require("js-cookie");
 
 class Layout extends Component {
+  handleSignOut = () => {
+    let currentlyLoggedInUserId = Cookies.get("currentlyLoggedInUserId");
+    if (currentlyLoggedInUserId) {
+      //logout
+      Cookies.remove("currentlyLoggedInUserId");
+    }
+    window.location.replace("/auth");
+  };
   render() {
     return (
       <div>
@@ -20,24 +29,72 @@ class Layout extends Component {
           </button>
           <div className="container">
             <a className="navbar-brand" href="/">
-              <img src="assets/img/logo.png" alt="logo" />
+              <img src="/assets/img/logo.png" alt="logo" />
             </a>
             <div
               className="collapse navbar-collapse"
               id="navbarsExampleDefault"
             >
               <ul className="navbar-nav ml-auto">
-                <li className="nav-item active">
+                {/* <li className="nav-item active">
                   <a className="nav-link" href="index.html">
                     Posts <span className="sr-only">(current)</span>
                   </a>
-                </li>
+                </li> */}
 
-                <li className="nav-item">
-                  <a className="nav-link" href="author.html">
-                    Author
-                  </a>
-                </li>
+                {Cookies.get("currentlyLoggedInUserId") ? (
+                  <li className="nav-item">
+                    <a
+                      className="nav-link"
+                      href={`/author/${Cookies.get("currentlyLoggedInUserId")}`}
+                    >
+                      Profile
+                    </a>
+                  </li>
+                ) : null}
+
+                {Cookies.get("currentlyLoggedInUserId") ? (
+                  <li className="nav-item">
+                    <a
+                      onClick={() => window.location.replace("/create-post")}
+                      className="nav-link"
+                      style={{ cursor: "pointer" }}
+                      // href="author.html"
+                    >
+                      <i
+                        style={{ color: "green" }}
+                        className="fas fa-lg fa-paper-plane"
+                      />
+                    </a>
+                  </li>
+                ) : null}
+
+                {Cookies.get("currentlyLoggedInUserId") ? (
+                  <li className="nav-item">
+                    <a
+                      onClick={() => this.handleSignOut()}
+                      className="nav-link"
+                      style={{ cursor: "pointer" }}
+                      // href="author.html"
+                    >
+                      <i
+                        // style={{ color: "green" }}
+                        className="fas fa-lg fa-power-off"
+                      />{" "}
+                    </a>
+                  </li>
+                ) : (
+                  <li className="nav-item">
+                    <a
+                      onClick={() => window.location.replace("/auth")}
+                      className="nav-link"
+                      style={{ cursor: "pointer" }}
+                      // href="author.html"
+                    >
+                      Sign In
+                    </a>
+                  </li>
+                )}
               </ul>
             </div>
           </div>

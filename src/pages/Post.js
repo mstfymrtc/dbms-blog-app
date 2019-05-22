@@ -1,41 +1,60 @@
 import React, { Component } from "react";
 import { Comment } from "../components/Comment";
 import axios from "axios";
+import "../styles/post.css";
+import { APP_URL } from "../config/constants";
+var Cookies = require("js-cookie");
+
 export default class Post extends Component {
   constructor(props) {
     super(props);
     this.textArea = React.createRef();
-    this.state = { post: {}, comments: [], loading: true };
+    this.state = { post: {}, comments: [], loading: true, onLikeHover: false };
   }
   componentDidMount() {
     const { postId } = this.props.match.params;
-    axios
-      .get(`http://localhost:3000/posts/getPostById/${postId}`)
-      .then(postRes => {
-        axios
-          .get(`http://localhost:3000/comments/getCommentsOfPost/${postId}`)
-          .then(commRes => {
-            console.log("comm", commRes);
-            this.setState({
-              post: postRes.data[0],
-              comments: commRes.data,
-              loading: false
-            });
+    axios.get(`${APP_URL}/posts/getPostById/${postId}`).then(postRes => {
+      axios
+        .get(`${APP_URL}/comments/getCommentsOfPost/${postId}`)
+        .then(commRes => {
+          console.log("comm", commRes);
+          this.setState({
+            post: postRes.data[0],
+            comments: commRes.data,
+            loading: false
           });
-      });
+        });
+    });
   }
+  handleLikePost = () => {
+    //
+    const { postId } = this.props.match.params;
 
+    axios
+      .post(`${APP_URL}/posts/incrementPostClap`, {
+        postid: postId
+      })
+      .then(response => {
+        this.setState(prevState => ({
+          ...prevState,
+          post: {
+            ...prevState.post,
+            likecount: prevState.post.likecount + 1
+          }
+        }));
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+  };
   handleComment = () => {
     const content = this.textArea.current.value;
     if (content) {
-      const {
-        post: { userid } //TODO: BU DEĞİŞTİRİLECEK, O ANKİ LOGİN OLAN KULLANICI OLARAK
-        //AYARLANACAK!!!!!!!
-      } = this.state;
+      const userid = Cookies.get("currentlyLoggedInUserId");
       const { postId } = this.props.match.params;
 
       axios
-        .post("http://localhost:3000/comments/create", {
+        .post(`${APP_URL}/comments/create`, {
           content,
           userid,
           postid: postId
@@ -69,6 +88,7 @@ export default class Post extends Component {
     if (loading) {
       return <p>Loading...</p>;
     }
+    console.log(this.state.post);
     return (
       <div>
         <div className="container">
@@ -109,20 +129,26 @@ export default class Post extends Component {
                   </li>
                 </ul>
                 <div className="sep" />
-                <p>Talk</p>
+                <p>Like</p>
                 <ul>
                   <li>
-                    <a href="#comments">
-                      42
+                    <a>
+                      {likecount}
                       <br />
-                      <svg
-                        className="svgIcon-use"
-                        width="29"
-                        height="29"
-                        viewBox="0 0 29 29"
-                      >
-                        <path d="M21.27 20.058c1.89-1.826 2.754-4.17 2.754-6.674C24.024 8.21 19.67 4 14.1 4 8.53 4 4 8.21 4 13.384c0 5.175 4.53 9.385 10.1 9.385 1.007 0 2-.14 2.95-.41.285.25.592.49.918.7 1.306.87 2.716 1.31 4.19 1.31.276-.01.494-.14.6-.36a.625.625 0 0 0-.052-.65c-.61-.84-1.042-1.71-1.282-2.58a5.417 5.417 0 0 1-.154-.75zm-3.85 1.324l-.083-.28-.388.12a9.72 9.72 0 0 1-2.85.424c-4.96 0-8.99-3.706-8.99-8.262 0-4.556 4.03-8.263 8.99-8.263 4.95 0 8.77 3.71 8.77 8.27 0 2.25-.75 4.35-2.5 5.92l-.24.21v.32c0 .07 0 .19.02.37.03.29.1.6.19.92.19.7.49 1.4.89 2.08-.93-.14-1.83-.49-2.67-1.06-.34-.22-.88-.48-1.16-.74z" />
-                      </svg>
+                      <br />
+
+                      <i
+                        className="fas fa-heart fa-lg "
+                        style={{
+                          color: this.state.onLikeHover ? "red" : null,
+                          cursor: "pointer"
+                        }}
+                        onMouseOver={() => this.setState({ onLikeHover: true })}
+                        onMouseOut={() => this.setState({ onLikeHover: false })}
+                        onClick={() => {
+                          this.handleLikePost();
+                        }}
+                      />
                     </a>
                   </li>
                 </ul>
@@ -142,10 +168,11 @@ export default class Post extends Component {
                       {fullname}
                     </a>
                     <span className="author-description">
-                      Founder of WowThemes.net and creator of
-                      <b>"Mediumish"</b> theme that you're currently previewing.
-                      Developing professional premium themes, templates,
-                      plugins, scripts since 2012.
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                      In dolor justo, commodo a sollicitudin at, venenatis eget
+                      nisl. Maecenas commodo ipsum ut elit consectetur, ac porta
+                      ipsum lobortis. Donec sagittis vestibulum massa vitae
+                      finibus.
                     </span>
                     <span className="post-date">
                       {publishdate ? publishdate.slice(0, 10) : ""}
@@ -157,12 +184,14 @@ export default class Post extends Component {
               </div>
 
               <img className="featured-image img-fluid" src={imageurl} alt="" />
-              <div className="article-post">{content}</div>
+              <div style={{ wordWrap: "break-word" }} className="article-post">
+                {content}
+              </div>
               <br />
               <div className="after-post-tags">
                 <ul className="tags">
                   <li>
-                    <a href="#">{categoryname}</a>
+                    <a style={{ cursor: "default" }}>{categoryname}</a>
                   </li>
                 </ul>
               </div>
@@ -201,33 +230,35 @@ export default class Post extends Component {
                   })}
                 </ul>
 
-                <div className="comment-form-wrap pt-5">
-                  <div className="section-title">
-                    <h2>
-                      <span>Leave a comment</span>
-                    </h2>
-                  </div>
+                {Cookies.get("currentlyLoggedInUserId") ? (
+                  <div className="comment-form-wrap pt-5">
+                    <div className="section-title">
+                      <h2>
+                        <span>Leave a comment</span>
+                      </h2>
+                    </div>
 
-                  <div className="form-group">
-                    <textarea
-                      name=""
-                      id="message"
-                      cols="30"
-                      rows="10"
-                      className="form-control"
-                      ref={this.textArea}
-                    />
-                    {/* this.setState({ commentText: e.target.value }); */}
+                    <div className="form-group">
+                      <textarea
+                        name=""
+                        id="message"
+                        cols="30"
+                        rows="10"
+                        className="form-control"
+                        ref={this.textArea}
+                      />
+                      {/* this.setState({ commentText: e.target.value }); */}
+                    </div>
+                    <div className="form-group">
+                      <input
+                        onClick={() => this.handleComment()}
+                        type="submit"
+                        value="Post Comment"
+                        className="btn btn-primary"
+                      />
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <input
-                      onClick={() => this.handleComment()}
-                      type="submit"
-                      value="Post Comment"
-                      className="btn btn-primary"
-                    />
-                  </div>
-                </div>
+                ) : null}
               </div>
             </div>
           </div>
