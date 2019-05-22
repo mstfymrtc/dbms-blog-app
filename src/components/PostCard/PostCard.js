@@ -21,6 +21,11 @@ export default class PostCard extends Component {
         .catch(err => console.log(err));
     }
   };
+  handleEdit = () => {
+    const { postId } = this.props;
+
+    window.location.replace(`edit-post/${postId}`);
+  };
   render() {
     const {
       postId,
@@ -72,12 +77,24 @@ export default class PostCard extends Component {
                   {publishDate ? publishDate.slice(0, 10) : ""}
                 </span>
               </span>
+
               {Cookies.get("currentlyLoggedInUserId") === authorId ? (
                 <span className="post-read-more">
                   <a onClick={() => this.handleDelete()} title="Read Story">
                     <i
                       style={{ cursor: "pointer" }}
-                      class="fas fa-trash fa-2x"
+                      className="fas fa-trash fa-2x"
+                    />
+                  </a>
+                </span>
+              ) : null}
+
+              {Cookies.get("currentlyLoggedInUserId") === authorId ? (
+                <span className="post-read-more">
+                  <a onClick={() => this.handleEdit()} title="Read Story">
+                    <i
+                      style={{ cursor: "pointer", marginRight: "10px" }}
+                      className="fas fa-edit fa-2x"
                     />
                   </a>
                 </span>

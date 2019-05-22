@@ -10,29 +10,41 @@ export default class EditPost extends Component {
     categories: [],
     selectedCategoryId: "",
     title: "",
-    content: ""
+    content: "",
+    fetching: true
   };
   componentDidMount() {
-    axios
-      .get(`${APP_URL}/categories/getAllCategories`)
-      .then(res => this.setState({ categories: res.data }));
+    const { postId } = this.props.match.params;
+    axios.get(`${APP_URL}/categories/getAllCategories`).then(postRes =>
+      // this.setState({ categories: res.data }
+
+      axios.get(`${APP_URL}/posts/getPostById/${postId}`).then(res =>
+        this.setState({
+          title: res.data[0].title,
+          content: res.data[0].content,
+          //   selectedCategoryId: res.data[0].categoryid,
+          categories: postRes.data,
+          fetching: false
+        })
+      )
+    );
   }
-  handleCreatePost = () => {
-    // title, content, categoryid, userid, imageurl
+
+  handleEditPostRequest = () => {
     const { selectedCategoryId, title, content } = this.state;
-    const userid = Cookies.get("currentlyLoggedInUserId");
+    const { postId } = this.props.match.params;
+
     if (selectedCategoryId && title && content) {
       axios
-        .post(`${APP_URL}/posts/createPost`, {
+        .post(`${APP_URL}/posts/updatePost`, {
           title,
           content,
           categoryid: selectedCategoryId,
-          userid,
-          imageurl: "https://i.hizliresim.com/5abO6d.jpg"
+          postid: postId
         })
         .then(function(response) {
           console.log("responseeeee!!", response);
-          alert("Post added succesfully!");
+          alert("Post updated succesfully!");
         })
         .catch(function(error) {
           console.log(error);
@@ -41,7 +53,11 @@ export default class EditPost extends Component {
       alert("Please fill in all fields!");
     }
   };
+
   render() {
+    if (this.state.fetching) {
+      return <p>Loading...</p>;
+    }
     const { categories, title, content } = this.state;
     console.log(this.state);
     return (
@@ -77,12 +93,13 @@ export default class EditPost extends Component {
               id="country"
               name="country"
             >
+              <option value={null}>Please select category...</option>
+
               {categories.map(item => (
                 <option key={item.categoryid} value={item.categoryid}>
                   {item.name}
                 </option>
               ))}
-              <option value={null}>Please select category...</option>
             </select>
 
             <label htmlFor="subject">Content</label>
@@ -104,7 +121,7 @@ export default class EditPost extends Component {
               className="inputSubmitStyle"
               type="submit"
               value="Submit"
-              onClick={() => this.handleCreatePost()}
+              onClick={() => this.handleEditPostRequest()}
             />
           </div>
         </div>

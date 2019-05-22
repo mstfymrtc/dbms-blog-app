@@ -6,6 +6,7 @@ import Post from "../pages/Post";
 import Author from "../pages/Author";
 import Auth from "../pages/Auth";
 import CreatePost from "../pages/CreatePost";
+import EditPost from "../pages/EditPost";
 
 const AppRoute = ({ component: Component, layout: Layout, ...rest }) => (
   <Route
